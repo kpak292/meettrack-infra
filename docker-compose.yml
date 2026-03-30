@@ -1,0 +1,57 @@
+services:
+  meettrack-db:
+    image: postgres:16-alpine
+    container_name: meettrack-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - meettrack-db-data:/var/lib/postgresql/data
+    networks:
+      - meettrack-net
+
+  meettrack-api:
+    build:
+      context: ../meettrack-api
+      dockerfile: src/MeetTrack.Api/Dockerfile
+    container_name: meettrack-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=meettrack-db;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
+      Jwt__Secret: ${JWT_SECRET}
+      Jwt__Issuer: meettrack-api
+      Jwt__Audience: meettrack-web
+      Jitsi__Domain: ${JITSI_DOMAIN}
+      Jitsi__AppId: ${JITSI_APP_ID}
+      Jitsi__AppSecret: ${JITSI_APP_SECRET}
+      Jitsi__WebhookSecret: ${JITSI_WEBHOOK_SECRET}
+    depends_on:
+      - meettrack-db
+    networks:
+      - meettrack-net
+
+  meettrack-web:
+    image: nginx:alpine
+    container_name: meettrack-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../meettrack-web/dist:/usr/share/nginx/html:ro
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - meettrack-api
+    networks:
+      - meettrack-net
+
+volumes:
+  meettrack-db-data:
+
+networks:
+  meettrack-net:
+    driver: bridge

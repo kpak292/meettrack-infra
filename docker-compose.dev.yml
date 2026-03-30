@@ -1,0 +1,16 @@
+services:
+  meettrack-db:
+    image: postgres:16-alpine
+    container_name: meettrack-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: meettrack
+      POSTGRES_USER: meettrack
+      POSTGRES_PASSWORD: meettrack_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - meettrack-db-data:/var/lib/postgresql/data
+
+volumes:
+  meettrack-db-data:

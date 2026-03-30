@@ -1,0 +1,77 @@
+services:
+  jitsi-web:
+    image: jitsi/web:stable-9823
+    container_name: jitsi-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - ENABLE_AUTH=1
+      - AUTH_TYPE=jwt
+      - JWT_APP_ID=${JWT_APP_ID}
+      - JWT_APP_SECRET=${JWT_APP_SECRET}
+      - JWT_ACCEPTED_ISSUERS=meettrack
+      - JWT_ACCEPTED_AUDIENCES=jitsi
+      - PUBLIC_URL=https://${JITSI_DOMAIN}
+      - TZ=Asia/Tashkent
+    volumes:
+      - ${CONFIG}/web:/config:Z
+      - ${CONFIG}/web/crontabs:/var/spool/cron/crontabs:Z
+      - ${CONFIG}/transcripts:/usr/share/jitsi-meet/transcripts:Z
+    networks:
+      meet.jitsi:
+
+  prosody:
+    image: jitsi/prosody:stable-9823
+    container_name: jitsi-prosody
+    restart: unless-stopped
+    environment:
+      - ENABLE_AUTH=1
+      - AUTH_TYPE=jwt
+      - JWT_APP_ID=${JWT_APP_ID}
+      - JWT_APP_SECRET=${JWT_APP_SECRET}
+      - JWT_ACCEPTED_ISSUERS=meettrack
+      - JWT_ACCEPTED_AUDIENCES=jitsi
+      - TZ=Asia/Tashkent
+    volumes:
+      - ${CONFIG}/prosody/config:/config:Z
+      - ${CONFIG}/prosody/prosody-plugins-custom:/prosody-plugins-custom:Z
+    networks:
+      meet.jitsi:
+        aliases:
+          - xmpp.meet.jitsi
+
+  jicofo:
+    image: jitsi/jicofo:stable-9823
+    container_name: jitsi-jicofo
+    restart: unless-stopped
+    environment:
+      - AUTH_TYPE=jwt
+      - TZ=Asia/Tashkent
+    volumes:
+      - ${CONFIG}/jicofo:/config:Z
+    depends_on:
+      - prosody
+    networks:
+      meet.jitsi:
+
+  jvb:
+    image: jitsi/jvb:stable-9823
+    container_name: jitsi-jvb
+    restart: unless-stopped
+    ports:
+      - "10000:10000/udp"
+    environment:
+      - JVB_PORT=10000
+      - JVB_ADVERTISE_IPS=${JVB_ADVERTISE_IPS}
+      - TZ=Asia/Tashkent
+    volumes:
+      - ${CONFIG}/jvb:/config:Z
+    depends_on:
+      - prosody
+    networks:
+      meet.jitsi:
+
+networks:
+  meet.jitsi:

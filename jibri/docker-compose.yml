@@ -1,0 +1,36 @@
+services:
+  jibri:
+    image: jitsi/jibri:stable-9823
+    container_name: jitsi-jibri
+    restart: unless-stopped
+    volumes:
+      - ${CONFIG}/jibri:/config:Z
+      - /dev/shm:/dev/shm
+      - jibri-recordings:/tmp/recordings
+    environment:
+      - XMPP_AUTH_DOMAIN=auth.meet.jitsi
+      - XMPP_INTERNAL_MUC_DOMAIN=internal-auth.meet.jitsi
+      - XMPP_RECORDER_DOMAIN=recorder.meet.jitsi
+      - XMPP_SERVER=xmpp.meet.jitsi
+      - XMPP_DOMAIN=meet.jitsi
+      - JIBRI_XMPP_USER=jibri
+      - JIBRI_XMPP_PASSWORD=${JIBRI_XMPP_PASSWORD}
+      - JIBRI_BREWERY_MUC=jibribrewery
+      - JIBRI_RECORDING_DIR=/tmp/recordings
+      - JIBRI_FINALIZE_RECORDING_SCRIPT_PATH=/config/finalize.sh
+      - DISPLAY=:0
+      - TZ=Asia/Tashkent
+    cap_add:
+      - SYS_ADMIN
+      - NET_BIND_SERVICE
+    tmpfs:
+      - /tmp
+    networks:
+      meet.jitsi:
+
+volumes:
+  jibri-recordings:
+
+networks:
+  meet.jitsi:
+    external: true

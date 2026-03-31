@@ -29,8 +29,30 @@ services:
       Jitsi__AppId: ${JITSI_APP_ID}
       Jitsi__AppSecret: ${JITSI_APP_SECRET}
       Jitsi__WebhookSecret: ${JITSI_WEBHOOK_SECRET}
+      Minio__Endpoint: meettrack-minio:9000
+      Minio__AccessKey: ${MINIO_USER}
+      Minio__SecretKey: ${MINIO_PASSWORD}
+      Minio__BucketName: recordings
+      Minio__UseSSL: "false"
     depends_on:
       - meettrack-db
+      - meettrack-minio
+    networks:
+      - meettrack-net
+
+  meettrack-minio:
+    image: minio/minio:latest
+    container_name: meettrack-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+    volumes:
+      - meettrack-minio-data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
     networks:
       - meettrack-net
 
@@ -51,6 +73,7 @@ services:
 
 volumes:
   meettrack-db-data:
+  meettrack-minio-data:
 
 networks:
   meettrack-net:

@@ -33,6 +33,11 @@ services:
       - JWT_APP_SECRET=${JWT_APP_SECRET}
       - JWT_ACCEPTED_ISSUERS=meettrack
       - JWT_ACCEPTED_AUDIENCES=jitsi
+      - ENABLE_RECORDING=1
+      - JIBRI_XMPP_USER=jibri
+      - JIBRI_XMPP_PASSWORD=${JIBRI_XMPP_PASSWORD}
+      - JIBRI_RECORDER_USER=recorder
+      - JIBRI_RECORDER_PASSWORD=${JIBRI_XMPP_PASSWORD}
       - TZ=Asia/Tashkent
     volumes:
       - ${CONFIG}/prosody/config:/config:Z
@@ -48,6 +53,7 @@ services:
     restart: unless-stopped
     environment:
       - AUTH_TYPE=jwt
+      - ENABLE_RECORDING=1
       - TZ=Asia/Tashkent
     volumes:
       - ${CONFIG}/jicofo:/config:Z

@@ -18,7 +18,4 @@ COPY custom-jibri.conf /defaults/custom-jibri.conf
 COPY finalize.sh /defaults/finalize.sh
 RUN chmod +x /defaults/finalize.sh
 
-# Remove watermark
-RUN echo '<svg xmlns="http://www.w3.org/2000/svg"/>' > /usr/share/jitsi-meet/images/watermark.svg 2>/dev/null || true
-
-USER jibri
+# Note: s6-overlay needs root, don't switch USER

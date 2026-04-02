@@ -1,44 +1,41 @@
 #!/bin/bash
-# Jibri recording finalization script
-# Called when recording is complete
-# $1 = recording directory path
-
 RECORDING_DIR="$1"
-RECORDING_FILE=$(find "$RECORDING_DIR" -name "*.mp4" | head -1)
+WEBHOOK_SECRET="wh00k_s3cr3t_2026"
+API_URL="https://157.22.128.243/api/v1/recordings/upload"
 
-if [ -z "$RECORDING_FILE" ]; then
-    echo "No recording file found in $RECORDING_DIR"
-    exit 1
+VIDEO_FILE=$(find "$RECORDING_DIR" -name "*.mp4" | head -1)
+if [ -z "$VIDEO_FILE" ]; then
+    exit 0
 fi
 
-# Extract meeting ID from directory name
-MEETING_ID=$(basename "$RECORDING_DIR")
+# Get room name from metadata
+ROOM_NAME=""
+if [ -f "$RECORDING_DIR/metadata.json" ]; then
+    ROOM_NAME=$(python3 -c "
+import json
+d = json.load(open('$RECORDING_DIR/metadata.json'))
+url = d.get('meeting_url', '')
+print(url.split('/')[-1].split('?')[0])
+" 2>/dev/null)
+fi
 
-echo "Finalizing recording for meeting: $MEETING_ID"
-echo "File: $RECORDING_FILE"
-
-# Upload to API
-curl -X POST "http://meettrack-api:8080/api/v1/recordings/upload" \
-    -F "file=@$RECORDING_FILE" \
-    -F "meetingId=$MEETING_ID" \
+# Upload video
+curl -sk -X POST "$API_URL" \
+    -H "X-Webhook-Secret: $WEBHOOK_SECRET" \
+    -F "file=@$VIDEO_FILE" \
     -F "type=Video" \
-    -H "Authorization: Bearer ${API_SERVICE_TOKEN}" \
+    -F "roomName=$ROOM_NAME" \
     --max-time 300
 
 # Extract and upload audio
 AUDIO_FILE="${RECORDING_DIR}/audio.mp3"
-ffmpeg -i "$RECORDING_FILE" -vn -acodec libmp3lame -q:a 4 "$AUDIO_FILE" 2>/dev/null
+ffmpeg -i "$VIDEO_FILE" -vn -acodec libmp3lame -q:a 4 "$AUDIO_FILE" 2>/dev/null
 
 if [ -f "$AUDIO_FILE" ]; then
-    curl -X POST "http://meettrack-api:8080/api/v1/recordings/upload" \
+    curl -sk -X POST "$API_URL" \
+        -H "X-Webhook-Secret: $WEBHOOK_SECRET" \
         -F "file=@$AUDIO_FILE" \
-        -F "meetingId=$MEETING_ID" \
         -F "type=Audio" \
-        -H "Authorization: Bearer ${API_SERVICE_TOKEN}" \
+        -F "roomName=$ROOM_NAME" \
         --max-time 300
 fi
-
-# Cleanup local files
-rm -rf "$RECORDING_DIR"
-
-echo "Recording finalized successfully"

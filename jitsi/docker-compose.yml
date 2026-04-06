@@ -38,6 +38,7 @@ services:
       - JVB_AUTH_PASSWORD=${JVB_AUTH_PASSWORD}
       - ENABLE_RECORDING=1
       - XMPP_RECORDER_DOMAIN=hidden.meet.jitsi
+      - XMPP_MUC_MODULES=muc_hidden_occ
       - JIBRI_XMPP_USER=jibri
       - JIBRI_XMPP_PASSWORD=${JIBRI_XMPP_PASSWORD}
       - JIBRI_RECORDER_USER=recorder

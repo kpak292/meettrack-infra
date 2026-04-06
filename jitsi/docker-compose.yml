@@ -14,6 +14,7 @@ services:
       - JWT_ACCEPTED_ISSUERS=meettrack
       - JWT_ACCEPTED_AUDIENCES=jitsi
       - PUBLIC_URL=https://${JITSI_DOMAIN}
+      - XMPP_RECORDER_DOMAIN=hidden.meet.jitsi
       - TZ=Asia/Tashkent
     volumes:
       - ${CONFIG}/web:/config:Z
@@ -36,6 +37,7 @@ services:
       - JICOFO_AUTH_PASSWORD=${JICOFO_AUTH_PASSWORD}
       - JVB_AUTH_PASSWORD=${JVB_AUTH_PASSWORD}
       - ENABLE_RECORDING=1
+      - XMPP_RECORDER_DOMAIN=hidden.meet.jitsi
       - JIBRI_XMPP_USER=jibri
       - JIBRI_XMPP_PASSWORD=${JIBRI_XMPP_PASSWORD}
       - JIBRI_RECORDER_USER=recorder
@@ -57,6 +59,7 @@ services:
       - AUTH_TYPE=jwt
       - JICOFO_AUTH_PASSWORD=${JICOFO_AUTH_PASSWORD}
       - ENABLE_RECORDING=1
+      - XMPP_RECORDER_DOMAIN=hidden.meet.jitsi
       - TZ=Asia/Tashkent
     volumes:
       - ${CONFIG}/jicofo:/config:Z

@@ -44,6 +44,8 @@ services:
       - JIBRI_RECORDER_USER=recorder
       - JIBRI_RECORDER_PASSWORD=${JIBRI_RECORDER_PASSWORD}
       - TZ=Asia/Tashkent
+    ports:
+      - "10.120.4.15:5222:5222"
     volumes:
       - ${CONFIG}/prosody/config:/config:Z
       - ${CONFIG}/prosody/prosody-plugins-custom:/prosody-plugins-custom:Z

@@ -34,9 +34,14 @@ services:
       Minio__SecretKey: ${MINIO_PASSWORD}
       Minio__BucketName: recordings
       Minio__UseSSL: "false"
+      # Browser-recording чанки — на volume, чтобы переживали редеплой/рестарт API
+      # (иначе незавершённая запись теряется). Путь совпадает с volume-точкой ниже.
+      Recording__ChunkStoragePath: /var/lib/meettrack/chunks
     depends_on:
       - meettrack-db
       - meettrack-minio
+    volumes:
+      - meettrack-recording-chunks:/var/lib/meettrack/chunks
     networks:
       - meettrack-net
 
@@ -74,6 +79,7 @@ services:
 volumes:
   meettrack-db-data:
   meettrack-minio-data:
+  meettrack-recording-chunks:
 
 networks:
   meettrack-net:

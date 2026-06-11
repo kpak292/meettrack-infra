@@ -37,11 +37,15 @@ services:
       # Browser-recording чанки — на volume, чтобы переживали редеплой/рестарт API
       # (иначе незавершённая запись теряется). Путь совпадает с volume-точкой ниже.
       Recording__ChunkStoragePath: /var/lib/meettrack/chunks
+      # FCM: без этого пути Program.cs молча регистрирует NoOpFcmService и
+      # мобильные коллекторы не получают пушей о входящих звонках.
+      Fcm__CredentialsPath: /app/firebase-admin-key.json
     depends_on:
       - meettrack-db
       - meettrack-minio
     volumes:
       - meettrack-recording-chunks:/var/lib/meettrack/chunks
+      - /opt/meettrack/firebase-admin-key.json:/app/firebase-admin-key.json:ro
     networks:
       - meettrack-net
 

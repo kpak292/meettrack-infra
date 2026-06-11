@@ -4,9 +4,7 @@ WEBHOOK_SECRET="wh00k_s3cr3t_2026"
 API_URL="https://157.22.128.243/api/v1/recordings/upload"
 LOG_FILE="/tmp/jibri-finalize.log"
 
-log() {
-    echo "[$(date -Iseconds)] $*" | tee -a "$LOG_FILE"
-}
+log() { echo "[$(date -Iseconds)] $*" | tee -a "$LOG_FILE"; }
 
 VIDEO_FILE=$(find "$RECORDING_DIR" -name "*.mp4" | head -1)
 if [ -z "$VIDEO_FILE" ]; then
@@ -23,6 +21,9 @@ url = d.get('meeting_url', '')
 print(url.split('/')[-1].split('?')[0])
 " 2>/dev/null)
 fi
+
+VIDEO_OK=1
+AUDIO_OK=1
 
 upload() {
     local file="$1" type="$2"
@@ -47,11 +48,22 @@ upload() {
     return 1
 }
 
-upload "$VIDEO_FILE" "Video"
+if upload "$VIDEO_FILE" "Video"; then
+    VIDEO_OK=0
+fi
 
 AUDIO_FILE="${RECORDING_DIR}/audio.mp3"
 ffmpeg -y -i "$VIDEO_FILE" -vn -acodec libmp3lame -q:a 4 "$AUDIO_FILE" 2>>"$LOG_FILE"
 
 if [ -f "$AUDIO_FILE" ]; then
-    upload "$AUDIO_FILE" "Audio"
+    if upload "$AUDIO_FILE" "Audio"; then
+        AUDIO_OK=0
+    fi
+fi
+
+if [ $VIDEO_OK -eq 0 ] && [ $AUDIO_OK -eq 0 ]; then
+    log "cleanup: removing $RECORDING_DIR"
+    rm -rf "$RECORDING_DIR"
+else
+    log "cleanup skipped: video_ok=$VIDEO_OK audio_ok=$AUDIO_OK (dir kept for diagnostics)"
 fi

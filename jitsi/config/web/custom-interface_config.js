@@ -1,0 +1,10 @@
+interfaceConfig.SHOW_JITSI_WATERMARK = false;
+interfaceConfig.SHOW_BRAND_WATERMARK = false;
+interfaceConfig.JITSI_WATERMARK_LINK = "";
+interfaceConfig.DEFAULT_WELCOME_PAGE_LOGO_URL = "";
+interfaceConfig.MOBILE_APP_PROMO = false;
+interfaceConfig.DISABLE_JOIN_LEAVE_NOTIFICATIONS = true;
+interfaceConfig.DEFAULT_BACKGROUND = "#1a1a2e";
+interfaceConfig.GENERATE_ROOMNAMES_ON_WELCOME_PAGE = false;
+interfaceConfig.DISPLAY_WELCOME_PAGE_CONTENT = false;
+interfaceConfig.APP_NAME = "MeetTrack";

@@ -40,8 +40,13 @@ services:
       - ENABLE_RECORDING=1
       - XMPP_RECORDER_DOMAIN=hidden.meet.jitsi
       - ENABLE_VISITORS=0
-      - XMPP_MUC_MODULES=muc_hidden_occ
-      - XMPP_MODULES=token_affiliation
+      # token_affiliation слушает muc-occupant-joined — событие MUC-компонента, поэтому
+      # модуль обязан грузиться в XMPP_MUC_MODULES (на VirtualHost через XMPP_MODULES он
+      # загружался, но не вызывался → роли из JWT никогда не назначались).
+      - XMPP_MUC_MODULES=muc_hidden_occ,token_affiliation
+      # presence_identity хукает pre-presence клиентских сессий (VirtualHost): кладёт
+      # context.user из JWT в MUC-presence → стабильный user.id для дедупа участников.
+      - XMPP_MODULES=presence_identity
       - JIBRI_XMPP_USER=jibri
       - JIBRI_XMPP_PASSWORD=${JIBRI_XMPP_PASSWORD}
       - JIBRI_RECORDER_USER=recorder

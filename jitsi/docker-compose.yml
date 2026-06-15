@@ -43,7 +43,9 @@ services:
       # token_affiliation слушает muc-occupant-joined — событие MUC-компонента, поэтому
       # модуль обязан грузиться в XMPP_MUC_MODULES (на VirtualHost через XMPP_MODULES он
       # загружался, но не вызывался → роли из JWT никогда не назначались).
-      - XMPP_MUC_MODULES=muc_hidden_occ,token_affiliation
+      # muc_dedup — там же: при входе выкидывает старые сессии того же context.user.id
+      # (серверный takeover для нативных коллекторов → убирает эхо и дубль плитки).
+      - XMPP_MUC_MODULES=muc_hidden_occ,token_affiliation,muc_dedup
       # presence_identity хукает pre-presence клиентских сессий (VirtualHost): кладёт
       # context.user из JWT в MUC-presence → стабильный user.id для дедупа участников.
       - XMPP_MODULES=presence_identity

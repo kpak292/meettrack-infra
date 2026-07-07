@@ -21,18 +21,23 @@ apiAddress: :9997
 
 pathDefaults:
   # Как только Jibri начал публиковать поток на путь $MTX_PATH (= broadcastId),
-  # поднимаем ffmpeg: тянем локально по RTMP, транскодим в 480p ~1 Mbps и пишем HLS
-  # (mpegts-сегменты по 2с, окно 6 сегментов) в /hls/$MTX_PATH/. nginx раздаёт это как
-  # /hls/{broadcastId}/index.m3u8. omit_endlist — плейлист остаётся «живым».
+  # поднимаем ffmpeg: тянем локально по RTMP и пишем HLS в /hls/$MTX_PATH/.
+  # AUDIO-ONLY (-vn): аплинк d01 ≈ 100 Мбит/с, видео на 373 зрителей не влезает
+  # (480p=373Mbps), а звук 64k×373≈24 Mbps проходит с запасом. Видео от Jibri по
+  # внутренней сети приходит, но наружу отдаём только аудио. Чтобы вернуть видео —
+  # см. закомментированный видео-вариант ниже (нужен апгрейд аплинка до ~1 Гбит/с).
   runOnReady: >
     sh -c "mkdir -p /hls/$MTX_PATH &&
     ffmpeg -nostdin -loglevel warning -i rtmp://localhost:1935/$MTX_PATH
-    -c:v libx264 -preset veryfast -tune zerolatency -profile:v main
-    -b:v 1000k -maxrate 1200k -bufsize 2400k -vf scale=-2:480 -g 60 -r 30
-    -c:a aac -b:a 96k -ac 2
+    -vn -c:a aac -b:a 64k -ac 2
     -f hls -hls_time 2 -hls_list_size 6
     -hls_flags delete_segments+append_list+omit_endlist
     -hls_segment_filename /hls/$MTX_PATH/seg_%d.ts /hls/$MTX_PATH/index.m3u8"
+  # ВИДЕО-вариант (при аплинке ~1 Гбит/с) — заменить строку ffmpeg выше на:
+  #   ffmpeg -nostdin -loglevel warning -i rtmp://localhost:1935/$MTX_PATH
+  #   -c:v libx264 -preset veryfast -tune zerolatency -profile:v main
+  #   -b:v 1000k -maxrate 1200k -bufsize 2400k -vf scale=-2:480 -g 60 -r 30
+  #   -c:a aac -b:a 96k -ac 2 -f hls ... (остальное как есть)
   runOnReadyRestart: yes
   # Поток закончился (Jibri остановил) — чистим сегменты, чтобы не копить мусор.
   runOnUnready: sh -c "rm -rf /hls/$MTX_PATH"

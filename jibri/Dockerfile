@@ -20,6 +20,12 @@ RUN sed -i 's|"--use-fake-ui-for-media-stream"|"--use-fake-ui-for-media-stream",
 COPY custom-jibri.conf /defaults/custom-jibri.conf
 COPY custom-jibri.conf /etc/jitsi/jibri/custom-jibri.conf
 
+# Streaming для «канала объявлений»: по умолчанию Jibri разрешает RTMP только на
+# YouTube/Facebook. Разрешаем произвольный RTMP (наш MediaMTX на d01), чтобы StartStreaming
+# с полным rtmp://-URL проходил валидацию. HOCON мержит дубли ключей, поэтому дописываем
+# блок в конец шаблона (тот же приём, что и с chrome-флагами выше).
+RUN printf '\njibri {\n  streaming {\n    rtmp-allow-list = [ ".*" ]\n  }\n}\n' >> /defaults/jibri.conf
+
 # Finalize script for uploading recordings
 COPY finalize.sh /defaults/finalize.sh
 RUN chmod +x /defaults/finalize.sh

@@ -1,0 +1,41 @@
+# MediaMTX для «канала объявлений» (broadcast) на d01.
+# Роль: принять RTMP от Jibri (d03) и превратить его в HLS 480p, который отдаёт nginx
+# зрителям. Транскод вниз делается ЗДЕСЬ (ffmpeg), чтобы НЕ трогать разрешение записей
+# Jibri (записи звонков остаются в исходном качестве). Один активный стрим за раз.
+
+logLevel: info
+
+# --- Ingest: только RTMP (Jibri публикует сюда) ---
+rtmp: yes
+rtmpAddress: :1935
+
+# Встроенные муксеры не нужны — HLS генерим сами через ffmpeg в общий volume /hls.
+hls: no
+rtsp: no
+webrtc: no
+srt: no
+
+# API для health/диагностики (nginx/скрипты могут дёргать).
+api: yes
+apiAddress: :9997
+
+pathDefaults:
+  # Как только Jibri начал публиковать поток на путь $MTX_PATH (= broadcastId),
+  # поднимаем ffmpeg: тянем локально по RTMP, транскодим в 480p ~1 Mbps и пишем HLS
+  # (mpegts-сегменты по 2с, окно 6 сегментов) в /hls/$MTX_PATH/. nginx раздаёт это как
+  # /hls/{broadcastId}/index.m3u8. omit_endlist — плейлист остаётся «живым».
+  runOnReady: >
+    sh -c "mkdir -p /hls/$MTX_PATH &&
+    ffmpeg -nostdin -loglevel warning -i rtmp://localhost:1935/$MTX_PATH
+    -c:v libx264 -preset veryfast -tune zerolatency -profile:v main
+    -b:v 1000k -maxrate 1200k -bufsize 2400k -vf scale=-2:480 -g 60 -r 30
+    -c:a aac -b:a 96k -ac 2
+    -f hls -hls_time 2 -hls_list_size 6
+    -hls_flags delete_segments+append_list+omit_endlist
+    -hls_segment_filename /hls/$MTX_PATH/seg_%d.ts /hls/$MTX_PATH/index.m3u8"
+  runOnReadyRestart: yes
+  # Поток закончился (Jibri остановил) — чистим сегменты, чтобы не копить мусор.
+  runOnUnready: sh -c "rm -rf /hls/$MTX_PATH"
+
+paths:
+  all_others:

@@ -40,7 +40,7 @@ pathDefaults:
   #   -c:a aac -b:a 96k -ac 2 -f hls ... (остальное как есть)
   runOnReadyRestart: yes
   # Поток закончился (Jibri остановил) — чистим сегменты, чтобы не копить мусор.
-  runOnUnready: sh -c "rm -rf /hls/$MTX_PATH"
+  runOnNotReady: sh -c "rm -rf /hls/$MTX_PATH"
 
 paths:
   all_others:

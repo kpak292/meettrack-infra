@@ -28,7 +28,7 @@ services:
       - JIBRI_RECORDING_DIR=/tmp/recordings
       - JIBRI_FINALIZE_RECORDING_SCRIPT_PATH=/config/finalize.sh
       - DISPLAY=:0
-      - RESOLUTION=1920x1080
+      - RESOLUTION=1280x720
       - TZ=Asia/Tashkent
     extra_hosts:
       - "meet.jitsi:10.120.4.15"

@@ -69,16 +69,15 @@ services:
     networks:
       - meettrack-net
 
-  # MediaMTX — RTMP-ingest от Jibri (d03) → транскод в 480p → HLS в общий volume.
-  # Роль вынесена отдельно, чтобы НЕ менять разрешение записей Jibri. Порт 1935
-  # публикуется на хост d01, чтобы Jibri по внутреннему IP (10.120.4.14:1935) мог
-  # опубликовать поток. HLS отдаёт nginx (meettrack-web) из общего volume.
+  # MediaMTX — WHIP-ingest от БРАУЗЕРА АДМИНА (микрофон) → audio-HLS в общий volume.
+  # WHIP-HTTP (8889) ходит через nginx по внутренней сети; наружу нужен только UDP-порт
+  # WebRTC-медиа (8189) — по нему браузер шлёт звук напрямую на d01. HLS отдаёт nginx.
   meettrack-mediamtx:
     image: bluenviron/mediamtx:latest-ffmpeg
     container_name: meettrack-mediamtx
     restart: unless-stopped
     ports:
-      - "1935:1935"   # RTMP ingest (Jibri публикует сюда)
+      - "8189:8189/udp"   # WebRTC media (SRTP) — браузер админа → d01
     volumes:
       - ./mediamtx/mediamtx.yml:/mediamtx.yml:ro
       - meettrack-hls:/hls
